@@ -50,7 +50,7 @@ def test_net_connection(host, port):
 
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=schedule_print, trigger="interval", seconds=59)
+scheduler.add_job(func=schedule_print, trigger="interval", seconds=10)
 scheduler.start()
 
 if __name__ == '__main__':
