@@ -53,6 +53,8 @@ def execute_connection(host_list):
 
     for server in host_list:
         success = telnet_connection(server["host"], server["port"])
+        if success:
+            failed_hosts.append(server["host"])
         if not success:
             failed.append(server)
 
