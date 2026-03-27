@@ -3,6 +3,7 @@ import socket
 from flask import Flask
 from apscheduler.schedulers.background import BackgroundScheduler
 import config
+import whatsapp_alert
 
 app = Flask(__name__)
 
@@ -52,10 +53,24 @@ def execute_connection(host_list):
     failed = []
 
     for server in host_list:
-        success = telnet_connection(server["host"], server["port"])
-        if success:
-            failed_hosts.append(server["host"])
-        if not success:
+        tcp_test, remote_address, source_address = telnet_connection(server["host"], server["port"])
+
+        # Create message
+        message = (
+            f"ComputerName     : {server['host']}\n"
+            f"RemoteAddress    : {remote_address}\n"
+            f"RemotePort       : {server['port']}\n"
+            f"SourceAddress    : {source_address}\n"
+            f"TcpTestSucceeded : {tcp_test}\n"
+            f"---------------------------------------------------"
+        )
+
+        print(message)
+
+        # Send WhatsApp message(Uncomment these line)
+        # whatsapp_alert.send_whatsapp(message)
+
+        if not tcp_test:
             failed.append(server)
 
     return failed
@@ -76,14 +91,7 @@ def telnet_connection(host, port):
         source_address = "N/A"
         tcp_test = False
 
-    print(f"ComputerName     : {host}")
-    print(f"RemoteAddress    : {remote_address}")
-    print(f"RemotePort       : {port}")
-    print(f"SourceAddress    : {source_address}")
-    print(f"TcpTestSucceeded : {tcp_test}")
-    print("---------------------------------------------------")
-
-    return tcp_test
+    return tcp_test, remote_address, source_address
 
 
 if __name__ == '__main__':
