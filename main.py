@@ -1,69 +1,37 @@
 import time
-import socket
-from flask import Flask
 from apscheduler.schedulers.background import BackgroundScheduler
-import config
+import requests
+import socket
+
+
+from flask import Flask
+from pythonping import ping
 
 app = Flask(__name__)
 
-scheduler = BackgroundScheduler()
-retry_job = None
-failed_hosts = []
-
 
 @app.route('/')
-def hello_world():
+def hello_world():  # put application's code here
     return 'Hello World!'
 
 
+@app.route('/hello')
+def hello_fun():
+    return 'Hello'
+
 def schedule_print():
-    global retry_job, failed_hosts
+    print(time.strftime("%w %m %Y %H:%M:%S"))
+    print(time.strftime("%A, %d. %B %Y %I:%M:%S %p"))
+    # ping('code.visualstudio.com', verbose=True)
+    test_net_connection("com.visualstudio.com", 443)
 
-    print(f"cronTime : {time.strftime('%A, %d %B %Y %I:%M:%S %p')}")
-
-    failed_hosts = execute_connection(config.HOSTS)
-
-    if failed_hosts:
-        print("Some connections failed. Starting retry job...")
-        if retry_job is None:
-            retry_job = scheduler.add_job(
-                retry_connection,
-                trigger='interval',
-                seconds=config.RETRY_INTERVAL_SECONDS,
-                id='retry_job',
-                replace_existing=True
-            )
-
-
-def retry_connection():
-    global retry_job, failed_hosts
-
-    print("Retrying failed connections...")
-
-    failed_hosts = execute_connection(failed_hosts)
-
-    if not failed_hosts:
-        print("All connections successful. Stopping retry job.")
-        scheduler.remove_job('retry_job')
-        retry_job = None
-
-
-def execute_connection(host_list):
-    failed = []
-
-    for server in host_list:
-        success = telnet_connection(server["host"], server["port"])
-        if not success:
-            failed.append(server)
-
-    return failed
-
-
-def telnet_connection(host, port):
+def test_net_connection(host, port):
     try:
+        # Resolve IP address
         addr_info = socket.getaddrinfo(host, port)
         remote_address = addr_info[0][4][0]
 
+        # Get source address
         sock = socket.create_connection((host, port), timeout=5)
         source_address = sock.getsockname()[0]
         sock.close()
@@ -79,21 +47,11 @@ def telnet_connection(host, port):
     print(f"RemotePort       : {port}")
     print(f"SourceAddress    : {source_address}")
     print(f"TcpTestSucceeded : {tcp_test}")
-    print("---------------------------------------------------")
 
-    return tcp_test
 
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=schedule_print, trigger="interval", seconds=10)
+scheduler.start()
 
 if __name__ == '__main__':
-    scheduler.add_job(
-        schedule_print,
-        trigger='cron',
-        hour=config.CRON_HOUR,
-        minute=config.CRON_MINUTE,
-        id='daily_job',
-        replace_existing=True
-    )
-
-    scheduler.start()
-
-    app.run(debug=False)
+    app.run()
