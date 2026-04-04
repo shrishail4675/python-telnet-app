@@ -15,3 +15,6 @@ nse_command=''
 # NSE SFTP Command & Password
 bse_command=''
 bse_password=''
+
+# base path of all uploaded files
+base_path = "C:/Users/sande/Downloads/Sample_Files/"

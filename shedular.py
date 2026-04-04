@@ -9,32 +9,32 @@ scheduler = BackgroundScheduler()
 
 if __name__ == '__main__':
 
-    # Telnet Job → 13:00 to 13:23 (every minute)
-    # scheduler.add_job(
-    #     main.schedule_print,
-    #     trigger='cron',
-    #     hour=12,
-    #     minute='0-10',
-    #     id='telnet_job',
-    #     replace_existing=True
-    # )
+    # Telnet Job at 05:00 to 05:30 (every 10 minutes)
+    scheduler.add_job(
+        main.schedule_print,
+        trigger='cron',
+        hour=5,
+        minute='0-30/10',
+        id='telnet_job',
+        replace_existing=True
+    )
 
-    # File Check Job → 15:00 to 15:58 (every minute)
-    # scheduler.add_job(
-    #     main.check_file_uploads,
-    #     trigger='cron',
-    #     hour=12,
-    #     minute='0-58',
-    #     id='file_check_job',
-    #     replace_existing=True
-    # )
+    # File Check Job at 06:00 to 06:30 (every 10 minutes)
+    scheduler.add_job(
+        main.check_file_uploads,
+        trigger='cron',
+        hour=6,
+        minute='0-30/10',
+        id='file_check_job',
+        replace_existing=True
+    )
 
-    # SFTP Check Job → Every minute
+    # SFTP Check Job at 09:00 to 09:30 (every 10 minutes)
     scheduler.add_job(
         sftp_connection.check_all_sftp,
         trigger='cron',
-        hour=12,
-        minute='0-59',
+        hour=9,
+        minute='0-30/10',
         id='sftp_job',
         replace_existing=True
     )

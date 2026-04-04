@@ -10,7 +10,7 @@ scheduler = BackgroundScheduler()
 retry_job = None
 failed_hosts = []
 
-# ================= TELNET SCHEDULER =================
+#  TELNET SCHEDULER
 
 def schedule_print():
     global retry_job, \
@@ -106,18 +106,16 @@ def check_file_uploads():
     print(f"\n[FILE CHECK] Time : {time.strftime('%A, %d %B %Y %I:%M:%S %p')}")
     print("---------------------------------------------------------")
 
-    base_path = "C:/Users/sande/Downloads/Sample_Files/"
-
     today_folder = datetime.now().strftime("%d-%m-%Y")
     today_file_prefix = datetime.now().strftime("realtime_%d%m%Y")
 
     missing_files = []
 
     try:
-        etf_list = os.listdir(base_path)
+        etf_list = os.listdir(config.base_path)
 
         for etf in etf_list:
-            etf_path = os.path.join(base_path, etf)
+            etf_path = os.path.join(config.base_path, etf)
 
             if not os.path.isdir(etf_path):
                 continue
