@@ -1,26 +1,22 @@
 import time
 import socket
-from flask import Flask
+import os
 from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime
 import config
 import whatsapp_alert
-
-app = Flask(__name__)
 
 scheduler = BackgroundScheduler()
 retry_job = None
 failed_hosts = []
 
-
-@app.route('/')
-def hello_world():
-    return 'Hello World!'
-
+# ================= TELNET SCHEDULER =================
 
 def schedule_print():
-    global retry_job, failed_hosts
+    global retry_job, \
+        failed_hosts
 
-    print(f"cronTime : {time.strftime('%A, %d %B %Y %I:%M:%S %p')}")
+    print(f"\n[TELNET CHECK] Time : {time.strftime('%A, %d %B %Y %I:%M:%S %p')}")
 
     failed_hosts = execute_connection(config.HOSTS)
 
@@ -36,10 +32,12 @@ def schedule_print():
             )
 
 
+# ================= RETRY LOGIC =================
+
 def retry_connection():
     global retry_job, failed_hosts
 
-    print("Retrying failed connections...")
+    print("\n[RETRY] Retrying failed connections...")
 
     failed_hosts = execute_connection(failed_hosts)
 
@@ -49,15 +47,18 @@ def retry_connection():
         retry_job = None
 
 
+# ================= TELNET EXECUTION =================
+
 def execute_connection(host_list):
     failed = []
 
     for server in host_list:
-        tcp_test, remote_address, source_address = telnet_connection(server["host"], server["port"])
+        tcp_test, remote_address, source_address = telnet_connection(
+            server["host"], server["port"]
+        )
 
-        # Create message
         message = (
-            f"ComputerName     : {server['host']}\n"
+            f"\nComputerName     : {server['host']}\n"
             f"RemoteAddress    : {remote_address}\n"
             f"RemotePort       : {server['port']}\n"
             f"SourceAddress    : {source_address}\n"
@@ -67,7 +68,7 @@ def execute_connection(host_list):
 
         print(message)
 
-        # Send WhatsApp message(Uncomment these line)
+        # Send WhatsApp Alert (optional)
         # whatsapp_alert.send_whatsapp(message)
 
         if not tcp_test:
@@ -75,6 +76,8 @@ def execute_connection(host_list):
 
     return failed
 
+
+# ================= TELNET CONNECTION =================
 
 def telnet_connection(host, port):
     try:
@@ -94,16 +97,61 @@ def telnet_connection(host, port):
     return tcp_test, remote_address, source_address
 
 
-if __name__ == '__main__':
-    scheduler.add_job(
-        schedule_print,
-        trigger='cron',
-        hour=config.CRON_HOUR,
-        minute=config.CRON_MINUTE,
-        id='daily_job',
-        replace_existing=True
-    )
 
-    scheduler.start()
 
-    app.run(debug=False)
+
+# ================= FILE CHECK SCHEDULER =================
+
+def check_file_uploads():
+    print(f"\n[FILE CHECK] Time : {time.strftime('%A, %d %B %Y %I:%M:%S %p')}")
+    print("---------------------------------------------------------")
+
+    base_path = "C:/Users/sande/Downloads/Sample_Files/"
+
+    today_folder = datetime.now().strftime("%d-%m-%Y")
+    today_file_prefix = datetime.now().strftime("realtime_%d%m%Y")
+
+    missing_files = []
+
+    try:
+        etf_list = os.listdir(base_path)
+
+        for etf in etf_list:
+            etf_path = os.path.join(base_path, etf)
+
+            if not os.path.isdir(etf_path):
+                continue
+
+            for market in ["NSE", "BSE"]:
+                market_path = os.path.join(etf_path, market, today_folder)
+
+                if os.path.exists(market_path):
+                    files = os.listdir(market_path)
+
+                    file_found = any(file.startswith(today_file_prefix) for file in files)
+
+                    if file_found:
+                        print(f"[SUCCESS] File Uploaded for : {etf} / {market}")
+                    else:
+                        print(f"[FAILED] File missing for : {etf} / {market}")
+                        missing_files.append(f"{etf} - {market}")
+
+                else:
+                    print(f"[FAILED] Date folder missing : {etf} / {market}")
+                    missing_files.append(f"{etf} - {market}")
+
+        # Final Summary
+        print("\n------------------------ SUMMARY ------------------------")
+
+        if missing_files:
+            print("Files missing in below folders:")
+            for m in missing_files:
+                print(m)
+
+            # whatsapp_alert.send_whatsapp("Missing files:\n" + "\n".join(missing_files))
+        else:
+            print("All ETF files uploaded successfully")
+            # whatsapp_alert.send_whatsapp("All ETF files uploaded successfully")
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
