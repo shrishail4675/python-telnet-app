@@ -18,3 +18,22 @@ bse_password=''
 
 # base path of all uploaded files
 base_path = "C:/Users/sande/Downloads/Sample_Files/"
+
+ETF_LIST = [
+    "ALPHA50NAV",
+    "Nifty200Momentum30ETF",
+    "BANKINGNAV",
+    "Nifty200Qty30",
+    "PSUBANKNAV",
+    "NV20ETFNAV",
+    "NIFTYNAV",
+    "NIFTYMIDCAP150",
+    "NIFTYINDIACONSNAV",
+    "NIFTY100LOWVOL30NAV",
+    "NIFTY100equalWeightETF",
+    "MSCI_INDIA_ETF",
+    "MIDCAP50NAV",
+    "KOTAKNIFTYKMNCNAV",
+    "ITETFNAV",
+    "KotakNiftyNext50ETF"
+]

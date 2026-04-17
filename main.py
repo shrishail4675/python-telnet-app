@@ -4,6 +4,7 @@ import os
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 import config
+
 import whatsapp_alert
 
 scheduler = BackgroundScheduler()
@@ -96,60 +97,67 @@ def telnet_connection(host, port):
 
     return tcp_test, remote_address, source_address
 
-
-
-
-
 # ================= FILE CHECK SCHEDULER =================
 
 def check_file_uploads():
     print(f"\n[FILE CHECK] Time : {time.strftime('%A, %d %B %Y %I:%M:%S %p')}")
-    print("---------------------------------------------------------")
+    # print("---------------------------------------------------------")
 
-    today_folder = datetime.now().strftime("%d-%m-%Y")
-    today_file_prefix = datetime.now().strftime("realtime_%d%m%Y")
-
-    missing_files = []
+    today = datetime.now().strftime("%d%m%Y")  # 17042026
+    missingfiles = []
+    successfiles = []
 
     try:
-        etf_list = os.listdir(config.base_path)
+        for etf in config.ETF_LIST:
+            etfpath = os.path.join(config.base_path, etf, "IN")
+            # print(f"\nChecking ETF: {etf}")
 
-        for etf in etf_list:
-            etf_path = os.path.join(config.base_path, etf)
-
-            if not os.path.isdir(etf_path):
+            if not os.path.exists(etfpath):
+                # print(f"[FAILED] IN folder missing for : {etf}")
+                missingfiles.append(f"{etf} - IN folder missing")
                 continue
 
-            for market in ["NSE", "BSE"]:
-                market_path = os.path.join(etf_path, market, today_folder)
+            files = os.listdir(etfpath)
+            # print("FILES:", files)
 
-                if os.path.exists(market_path):
-                    files = os.listdir(market_path)
+            # Check only required pattern (ignore prefix like xy_)
+            comp_pattern = f"comp_{today}"
+            const_pattern = f"const_{today}"
 
-                    file_found = any(file.startswith(today_file_prefix) for file in files)
+            comp_found = any(comp_pattern in f.lower() for f in files)
+            const_found = any(const_pattern in f.lower() for f in files)
 
-                    if file_found:
-                        print(f"[SUCCESS] File Uploaded for : {etf} / {market}")
-                    else:
-                        print(f"[FAILED] File missing for : {etf} / {market}")
-                        missing_files.append(f"{etf} - {market}")
+            if comp_found and const_found:
+                # print(f"[SUCCESS] Both files present for : {etf}")
+                successfiles.append(etf)
+            else:
+                if not comp_found:
+                    # print(f"[FAILED] comp file missing for : {etf}")
+                    missingfiles.append(f"{etf} - comp missing")
 
-                else:
-                    print(f"[FAILED] Date folder missing : {etf} / {market}")
-                    missing_files.append(f"{etf} - {market}")
+                if not const_found:
+                    # print(f"[FAILED] const file missing for : {etf}")
+                    missingfiles.append(f"{etf} - const missing")
 
-        # Final Summary
-        print("\n------------------------ SUMMARY ------------------------")
+        # ================= SUMMARY =================
+        print("\n------------------------ Result ------------------------")
 
-        if missing_files:
-            print("Files missing in below folders:")
-            for m in missing_files:
-                print(m)
+        if missingfiles:
+            message = "\nMissing ETF files:\n" + "\n".join(missingfiles)
+            print(message)
 
-            # whatsapp_alert.send_whatsapp("Missing files:\n" + "\n".join(missing_files))
-        else:
-            print("All ETF files uploaded successfully")
-            # whatsapp_alert.send_whatsapp("All ETF files uploaded successfully")
+            # Send WhatsApp Alert
+            # whatsappalert.sendwhatsapp(message)
+
+        if successfiles:
+            success_message = "\nAll files present for ETFs:\n" + "\n".join(successfiles)
+            print(success_message)
+
+            # Send WhatsApp Alert
+            # whatsappalert.sendwhatsapp(success_message)
+
+        if not missingfiles and not successfiles:
+            print("No ETFs processed")
 
     except Exception as e:
         print(f"Error: {str(e)}")
