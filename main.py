@@ -105,7 +105,7 @@ def check_file_uploads():
 
     today = datetime.now().strftime("%d%m%Y")  # 17042026
     missingfiles = []
-    successfiles = []
+    successful = []
 
     try:
         for etf in config.ETF_LIST:
@@ -129,7 +129,7 @@ def check_file_uploads():
 
             if comp_found and const_found:
                 # print(f"[SUCCESS] Both files present for : {etf}")
-                successfiles.append(etf)
+                successful.append(etf)
             else:
                 if not comp_found:
                     # print(f"[FAILED] comp file missing for : {etf}")
@@ -149,14 +149,14 @@ def check_file_uploads():
             # Send WhatsApp Alert
             # whatsappalert.sendwhatsapp(message)
 
-        if successfiles:
-            success_message = "\nAll files present for ETFs:\n" + "\n".join(successfiles)
+        if successful:
+            success_message = "\nAll files present for ETFs:\n" + "\n".join(successful)
             print(success_message)
 
             # Send WhatsApp Alert
             # whatsappalert.sendwhatsapp(success_message)
 
-        if not missingfiles and not successfiles:
+        if not missingfiles and not successful:
             print("No ETFs processed")
 
     except Exception as e:
