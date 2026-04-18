@@ -8,50 +8,55 @@ import config
 import whatsapp_alert
 
 scheduler = BackgroundScheduler()
-retry_job = None
-failed_hosts = []
+
 
 #  TELNET SCHEDULER
-
 def schedule_print():
-    global retry_job, \
-        failed_hosts
-
     print(f"\n[TELNET CHECK] Time : {time.strftime('%A, %d %B %Y %I:%M:%S %p')}")
 
-    failed_hosts = execute_connection(config.HOSTS)
+    try:
+        for server in config.HOSTS:
+            try:
+                tcp_test, remote_address, source_address = telnet_connection(
+                    server["host"], server["port"]
+                )
 
-    if failed_hosts:
-        print("Some connections failed. Starting retry job...")
-        if retry_job is None:
-            retry_job = scheduler.add_job(
-                retry_connection,
-                trigger='interval',
-                seconds=config.RETRY_INTERVAL_SECONDS,
-                id='retry_job',
-                replace_existing=True
-            )
+                status = "SUCCESS" if tcp_test else "FAILED"
 
+                message = (
+                    f"\nComputerName     : {server['host']}\n"
+                    f"RemoteAddress    : {remote_address}\n"
+                    f"RemotePort       : {server['port']}\n"
+                    f"SourceAddress    : {source_address}\n"
+                    f"TcpTestSucceeded : {tcp_test} ({status})\n"
+                    f"---------------------------------------------------"
+                )
 
-# ================= RETRY LOGIC =================
+                print(message)
+                # whatsapp_alert.send_whatsapp(message)
 
-def retry_connection():
-    global retry_job, failed_hosts
+            except Exception as server_error:
+                error_message = (
+                    f"\nComputerName     : {server['host']}\n"
+                    f"RemotePort       : {server['port']}\n"
+                    f"Status           : ERROR\n"
+                    f"Error            : {str(server_error)}\n"
+                    f"---------------------------------------------------"
+                )
 
-    print("\n[RETRY] Retrying failed connections...")
+                print(error_message)
+                # whatsapp_alert.send_whatsapp(error_message)
 
-    failed_hosts = execute_connection(failed_hosts)
-
-    if not failed_hosts:
-        print("All connections successful. Stopping retry job.")
-        scheduler.remove_job('retry_job')
-        retry_job = None
+    except Exception as e:
+        fail_message = f"[TELNET CHECK FAILED]\nError: {str(e)}"
+        print(fail_message)
+        # whatsapp_alert.send_whatsapp(fail_message)
 
 
 # ================= TELNET EXECUTION =================
 
 def execute_connection(host_list):
-    failed = []
+    response = []
 
     for server in host_list:
         tcp_test, remote_address, source_address = telnet_connection(
@@ -72,10 +77,7 @@ def execute_connection(host_list):
         # Send WhatsApp Alert (optional)
         # whatsapp_alert.send_whatsapp(message)
 
-        if not tcp_test:
-            failed.append(server)
-
-    return failed
+    return response
 
 
 # ================= TELNET CONNECTION =================
@@ -97,30 +99,27 @@ def telnet_connection(host, port):
 
     return tcp_test, remote_address, source_address
 
+
 # ================= FILE CHECK SCHEDULER =================
 
 def check_file_uploads():
     print(f"\n[FILE CHECK] Time : {time.strftime('%A, %d %B %Y %I:%M:%S %p')}")
-    # print("---------------------------------------------------------")
 
     today = datetime.now().strftime("%d%m%Y")  # 17042026
     missingfiles = []
     successful = []
+    final_message = ""
 
     try:
         for etf in config.ETF_LIST:
             etfpath = os.path.join(config.base_path, etf, "IN")
-            # print(f"\nChecking ETF: {etf}")
 
             if not os.path.exists(etfpath):
-                # print(f"[FAILED] IN folder missing for : {etf}")
                 missingfiles.append(f"{etf} - IN folder missing")
                 continue
 
             files = os.listdir(etfpath)
-            # print("FILES:", files)
 
-            # Check only required pattern (ignore prefix like xy_)
             comp_pattern = f"comp_{today}"
             const_pattern = f"const_{today}"
 
@@ -128,36 +127,30 @@ def check_file_uploads():
             const_found = any(const_pattern in f.lower() for f in files)
 
             if comp_found and const_found:
-                # print(f"[SUCCESS] Both files present for : {etf}")
                 successful.append(etf)
             else:
                 if not comp_found:
-                    # print(f"[FAILED] comp file missing for : {etf}")
                     missingfiles.append(f"{etf} - comp missing")
-
                 if not const_found:
-                    # print(f"[FAILED] const file missing for : {etf}")
                     missingfiles.append(f"{etf} - const missing")
 
         # ================= SUMMARY =================
         print("\n------------------------ Result ------------------------")
 
         if missingfiles:
-            message = "\nMissing ETF files:\n" + "\n".join(missingfiles)
-            print(message)
-
-            # Send WhatsApp Alert
-            # whatsappalert.sendwhatsapp(message)
+            final_message += "\nMissing ETF files:\n" + "\n".join(missingfiles) + "\n"
 
         if successful:
-            success_message = "\nAll files present for ETFs:\n" + "\n".join(successful)
-            print(success_message)
+            final_message += "\nAll files present for ETFs:\n" + "\n".join(successful) + "\n"
 
-            # Send WhatsApp Alert
-            # whatsappalert.sendwhatsapp(success_message)
+        # If nothing was added
+        if not final_message.strip():
+            final_message = "No ETFs processed"
 
-        if not missingfiles and not successful:
-            print("No ETFs processed")
+        print(final_message)
+
+        # Send WhatsApp Alert
+        # whatsapp_alert.send_whatsapp(final_message)
 
     except Exception as e:
         print(f"Error: {str(e)}")

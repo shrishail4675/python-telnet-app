@@ -1,7 +1,7 @@
 
 # telnet host & ips
 HOSTS = [
-    {"host": "com.visualstudio.com", "port": 443},
+    {"host": "com.visudfvfalstudio.com", "port": 443},
     {"host": "google.com", "port": 443},
     {"host": "github.com", "port": 443}
 ]
