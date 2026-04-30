@@ -53,33 +53,6 @@ def schedule_print():
         # whatsapp_alert.send_whatsapp(fail_message)
 
 
-# ================= TELNET EXECUTION =================
-
-def execute_connection(host_list):
-    response = []
-
-    for server in host_list:
-        tcp_test, remote_address, source_address = telnet_connection(
-            server["host"], server["port"]
-        )
-
-        message = (
-            f"\nComputerName     : {server['host']}\n"
-            f"RemoteAddress    : {remote_address}\n"
-            f"RemotePort       : {server['port']}\n"
-            f"SourceAddress    : {source_address}\n"
-            f"TcpTestSucceeded : {tcp_test}\n"
-            f"---------------------------------------------------"
-        )
-
-        print(message)
-
-        # Send WhatsApp Alert (optional)
-        # whatsapp_alert.send_whatsapp(message)
-
-    return response
-
-
 # ================= TELNET CONNECTION =================
 
 def telnet_connection(host, port):
