@@ -1,52 +1,55 @@
 import requests
-import json
+import config
 
 
-API_URL = "https://cpaaswa.netcorecloud.net/api/v2/message/nc"
-
-# Netcore API token
-AUTH_TOKEN = "YOUR_NETCORE_TOKEN"
-
-# Your WABA source number / sender id
-SOURCE = "YOUR_WABA_ID_OR_SOURCE"
-
-# Receiver number with country code
-TO_NUMBER = "9198XXXXXXXX"
-
-
-def send_whatsapp(message):
-
+def send_whatsapp(message_text):
+    message_text = "All iNav are updated in Database via application testing"
     headers = {
-        "Authorization": f"Bearer {AUTH_TOKEN}",
+        "Authorization": f"Bearer {config.API_KEY}",
         "Content-Type": "application/json"
     }
 
-    payload = {
-        "message": [
-            {
-                "recipient_whatsapp": TO_NUMBER,
-                "recipient_type": "individual",
-                "message_type": "text",
-                "source": SOURCE,
-                "x-apiheader": "custom_data",
-                "type_text": [
-                    {
-                        "text": message
+    messages = [
+        {
+            "recipient_whatsapp": number,
+            "recipient_type": "individual",
+            "message_type": "template",
+            "type_template": [
+                {
+                    "name": "database_price_check_success_inav",
+                    "attributes": [
+                        message_text,
+                        "https://netcorecloud.com/"
+                    ],
+                    "language": {
+                        "locale": "en",
+                        "policy": "deterministic"
                     }
-                ]
-            }
-        ]
+                }
+            ]
+        }
+        for number in config.TO_NUMBERS
+    ]
+
+    payload = {
+        "message": messages
     }
 
-    response = requests.post(
-        API_URL,
-        headers=headers,
-        data=json.dumps(payload)
-    )
+    try:
 
-    print("Status Code:", response.status_code)
-    print("Response:", response.text)
+        response = requests.post(
+            config.URL,
+            headers=headers,
+            json=payload,
+            timeout=30
+        )
 
+        print("Status Code:", response.status_code)
+        print("Response:", response.text)
 
-# Example
-send_whatsapp("Server Down Alert")
+        return response.json()
+
+    except requests.exceptions.RequestException as e:
+
+        print("Error:", str(e))
+        return None

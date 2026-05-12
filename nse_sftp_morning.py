@@ -1,6 +1,7 @@
 import subprocess
 from datetime import datetime
 import config
+import whatsapp_alert
 
 TOTAL_EXPECTED_FILES = 34
 
@@ -24,18 +25,17 @@ def check_nse_sftp():
         config.nse_secondary_command
     )
 
-
     final_output.append(
         print_final_summary(primary_result, secondary_result)
     )
 
     final_message = "\n".join(final_output)
 
-    print("\n")
-    print(final_message)
+    # print("\n")
+    # print(final_message)
 
-     # SEND WHATSAPP MESSAGE
-     # whatsappalert.sendwhatsapp(final_message)
+    # SEND WHATSAPP MESSAGE
+    whatsapp_alert.send_whatsapp(final_message)
 
     return final_message
 
@@ -145,13 +145,11 @@ def run_sftp(command):
 
 
 def check_server(server_name, command):
-
     today_date = datetime.now().strftime("%d%m%Y")
 
     result = run_sftp(command)
 
     if not result["success"]:
-
         return {
             "server": server_name,
             "connected": False,
@@ -176,7 +174,6 @@ def check_server(server_name, command):
         if filename:
             files_list.append(filename)
 
-
     for prefix in config.file_prefixes:
 
         expected_files = [
@@ -191,14 +188,12 @@ def check_server(server_name, command):
             for filename in files_list:
 
                 if filename.startswith(expected_file):
-
                     found = True
                     uploaded_files.append(filename)
                     break
 
             if not found:
                 missing_files.append(expected_file)
-
 
     return {
         "server": server_name,
@@ -209,6 +204,7 @@ def check_server(server_name, command):
         "found_count": len(uploaded_files),
         "total_count": TOTAL_EXPECTED_FILES
     }
+
 
 def print_final_summary(primary_result, secondary_result):
     summary = []

@@ -35,7 +35,7 @@ if __name__ == '__main__':
         # (safe_job(main.check_file_uploads), 'file_check_job', 10, 31),
 
         # SFTP connection check
-        (safe_job(nse_sftp_morning.check_nse_sftp), 'sftp_job', 11, 59),
+        (safe_job(nse_sftp_morning.check_nse_sftp), 'sftp_job', 16, 31),
 
         # runs ONLY 2 times: 09:05 and 09:20
         # (safe_job(nse_sftp_market_hrs.check_nse_sftp_market_hrs), 'realtime_file_job', 14, '33,20'),

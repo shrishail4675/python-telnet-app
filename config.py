@@ -47,3 +47,12 @@ file_prefixes = [
     "KOTAKMNC", "yz1", "yz2", "yz3", "yz4", "yz5",
     "yz6", "yz7", "yz8", "yz9"
 ]
+
+# Whatsapp api details
+API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJrb3Rha19hbWNfZWFwaXw3MDQ1MDk1NzcxIiwiZXhwIjoyNjA5NDc4NTc4fQ.zVpayaky-xHmDB5vsJgk0NvMx-i9rmx_e76rNXM8G1O5I_VLsb4YfOQjyAunwlQ1k3i2UlkpQo9qjLrMUvmK0Q"
+URL = "https://waapi.pepipost.com/api/v2/message/"
+TO_NUMBERS = [
+    "917758827146",
+    "918766771695",
+    "919999999999"
+]

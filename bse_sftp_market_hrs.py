@@ -111,7 +111,7 @@ def check_bse_sftp_market_hrs():
                 pass
 
         # ALWAYS SEND WHATSAPP ALERT
-        # whatsapp_alert.send_whatsapp(final_message)
+        whatsapp_alert.send_whatsapp(final_message)
 
         print("\n------ BSE SFTP Response ------\n")
         print(final_message)

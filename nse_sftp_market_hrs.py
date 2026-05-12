@@ -134,7 +134,7 @@ def check_nse_sftp_market_hrs():
     # ALWAYS SEND ALERT
     try:
         print(final_message)
-        # whatsapp_alert.send_whatsapp(final_message)
+        whatsapp_alert.send_whatsapp(final_message)
     except Exception as e:
         print("Failed to send WhatsApp alert:", str(e))
 
