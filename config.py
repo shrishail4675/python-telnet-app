@@ -6,7 +6,7 @@ HOSTS = [
 ]
 
 # NSE SFTP Command --Morning
-nse_primary_command = 'sftp -i /home/appadmin/.ssh/id_rsa -oport=6010 KOTAKINAV@125.22.48.105'
+nse_primary_command = ""
 nse_secondary_command = "sftp -i /home/appadmin/.ssh/id_rsa -oport=6010 KOTAKINAV@125.22.48.106"
 
 # NSE SFTP Command --Market Hours
