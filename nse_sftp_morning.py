@@ -35,15 +35,18 @@ def check_nse_sftp():
     # print(final_message)
 
     # SEND WHATSAPP MESSAGE
-    whatsapp_alert.send_whatsapp(final_message)
-
+    # whatsapp_alert.send_whatsapp(final_message)
+    # whatsapp_alert.send_whatsapp(template_name="connectivity_notification_inav",
+    #               attributes=["success", "Success", final_message])
     return final_message
 
 
-def run_sftp(command):
+def run_sftp(server_name, command):
     try:
 
         if not command or not command.strip():
+            whatsapp_alert.send_whatsapp(template_name="nse_sftp_connection_inav",
+                                         attributes=["Failed", f"{server_name} server SFTP command is empty", ""])
             return {
                 "success": False,
                 "output": "",
@@ -72,7 +75,7 @@ def run_sftp(command):
         )
 
         output_lower = output.lower()
-
+        print(f"output_lower: {output_lower}")
         error_keywords = [
             "permission denied",
             "connection refused",
@@ -92,15 +95,14 @@ def run_sftp(command):
         for err in error_keywords:
 
             if err in output_lower:
+                whatsapp_alert.send_whatsapp(template_name="nse_sftp_connection_inav",
+                                             attributes=["Failed", server_name + " server " + err, ""])
                 return {
                     "success": False,
                     "output": output,
                     "error": err
                 }
 
-        # =================================================
-        # CONNECTION VALIDATION
-        # =================================================
         success_keywords = [
             "connected to",
             "sftp>"
@@ -112,15 +114,15 @@ def run_sftp(command):
         )
 
         if not connected:
+            whatsapp_alert.send_whatsapp(template_name="nse_sftp_connection_inav",
+                                         attributes=["Failed", server_name + " server " + output_lower, ""])
             return {
                 "success": False,
                 "output": output,
-                "error": "SFTP connection validation failed"
+                "error": "SFTP connection failed"
             }
-
-        # =================================================
-        # SUCCESS
-        # =================================================
+        whatsapp_alert.send_whatsapp(template_name="nse_sftp_connection_inav",
+                                     attributes=["success", server_name + " server " + output_lower, ""])
         return {
             "success": True,
             "output": output,
@@ -129,6 +131,9 @@ def run_sftp(command):
 
     except subprocess.TimeoutExpired:
 
+        whatsapp_alert.send_whatsapp(template_name="nse_sftp_connection_inav",
+                                     attributes=["Failed", f"{server_name} server SFTP Connection Timeout", ""])
+
         return {
             "success": False,
             "output": "",
@@ -136,6 +141,9 @@ def run_sftp(command):
         }
 
     except Exception as e:
+        whatsapp_alert.send_whatsapp(template_name="nse_sftp_connection_inav",
+                                     attributes=["Failed", f"{server_name} server general exception SFTP not connected",
+                                                 ""])
 
         return {
             "success": False,
@@ -147,18 +155,19 @@ def run_sftp(command):
 def check_server(server_name, command):
     today_date = datetime.now().strftime("%d%m%Y")
 
-    result = run_sftp(command)
+    result = run_sftp(server_name, command)
+    print(f"\n {result}")
 
-    if not result["success"]:
-        return {
-            "server": server_name,
-            "connected": False,
-            "reason": result["error"],
-            "uploaded_files": [],
-            "missing_files": [],
-            "found_count": 0,
-            "total_count": TOTAL_EXPECTED_FILES
-        }
+    # if not result["success"]:
+    #     return {
+    #         "server": server_name,
+    #         "connected": False,
+    #         "reason": result["error"],
+    #         "uploaded_files": [],
+    #         "missing_files": [],
+    #         "found_count": 0,
+    #         "total_count": TOTAL_EXPECTED_FILES
+    #     }
 
     output = result["output"]
 
@@ -194,6 +203,14 @@ def check_server(server_name, command):
 
             if not found:
                 missing_files.append(expected_file)
+    print(f"{missing_files}")
+
+    whatsapp_alert.send_whatsapp(template_name="nse_sftp_files_upload_success_inav",
+                                 attributes=[f"{server_name} server", uploaded_files,
+                                             ""])
+    whatsapp_alert.send_whatsapp(template_name="nse_sftp_files_upload_failure_inav",
+                                 attributes=[f"{server_name} server and missing_files\n ", missing_files,
+                                             ""])
 
     return {
         "server": server_name,
@@ -282,18 +299,3 @@ def print_final_summary(primary_result, secondary_result):
         summary.append("SFTP CONNECTION FAILED")
         summary.append(f"REASON : {secondary_result['reason']}")
     return "\n".join(summary)
-
-#
-# if __name__ == "__main__":
-#
-#     try:
-#
-#         check_nse_sftp()
-#
-#     except KeyboardInterrupt:
-#
-#         print("Program Interrupted")
-#
-#     except Exception as e:
-#
-#         print(f"Unexpected Error : {str(e)}")

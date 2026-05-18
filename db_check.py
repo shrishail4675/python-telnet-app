@@ -4,6 +4,8 @@ from datetime import datetime
 from twilio.rest import Client
 import traceback
 
+import whatsapp_alert
+
 
 # 🔹 DB Connection
 def get_connection():
@@ -24,7 +26,7 @@ def get_table_columns(conn, table_name):
         WHERE table_name = :1
     """, [table_name.upper()])
 
-    #Exclude unwanted columns here
+    # Exclude unwanted columns here
     excluded_columns = ['SRNO']
 
     columns = [
@@ -35,6 +37,7 @@ def get_table_columns(conn, table_name):
 
     cursor.close()
     return columns
+
 
 # Main Check Function
 def check_data_updated():
@@ -49,7 +52,7 @@ def check_data_updated():
         conn = get_connection()
         cursor = conn.cursor()
 
-        #dynamically fetch columns (NO hardcoding)
+        # dynamically fetch columns (NO hardcoding)
         columns = get_table_columns(conn, "ABC")
 
         not_updated = []
@@ -65,6 +68,8 @@ def check_data_updated():
                     not_updated.append(col)
 
             except Exception:
+                whatsapp_alert.send_whatsapp(template_name="database_price_check_failure_inav",
+                                             attributes=[f"{col} (ERROR)", "", ""])
                 not_updated.append(f"{col} (ERROR)")
 
         # Build message
@@ -75,6 +80,8 @@ Issues found:
 {chr(10).join(['- ' + col for col in not_updated])}
 """
         else:
+            whatsapp_alert.send_whatsapp(template_name="database_price_check_success_inav",
+                                         attributes=["", "", ""])
             message = f"""Daily Data Check ({today})
 
 All columns are updated successfully.
@@ -102,7 +109,7 @@ Trace:
         except:
             pass
 
-        # OPTIONAL: send WhatsApp here
-        # send_whatsapp(message)
+        whatsapp_alert.send_whatsapp(template_name="database_price_check_failure_inav",
+                                     attributes=[message, "", ""])
 
     return message

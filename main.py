@@ -11,11 +11,11 @@ scheduler = BackgroundScheduler()
 
 
 #  TELNET SCHEDULER
-def schedule_print():
+def schedule_print(hosts):
     print(f"\n[TELNET CHECK] Time : {time.strftime('%A, %d %B %Y %I:%M:%S %p')}")
 
     try:
-        for server in config.HOSTS:
+        for server in hosts:
             try:
                 tcp_test, remote_address, source_address = telnet_connection(
                     server["host"], server["port"]
@@ -31,8 +31,15 @@ def schedule_print():
                     f"TcpTestSucceeded : {tcp_test} ({status})\n"
                     f"---------------------------------------------------"
                 )
-
-                print(message)
+                print(f"test1: {server['host']}:{server['port']}")
+                whatsapp_alert.send_whatsapp(
+                    template_name="connectivity_notification_inav",
+                    attributes=[
+                        "success",
+                        f"{server['host']}:{server['port']}",
+                        status
+                    ]
+                )
                 # whatsapp_alert.send_whatsapp(message)
 
             except Exception as server_error:
@@ -43,12 +50,30 @@ def schedule_print():
                     f"Error            : {str(server_error)}\n"
                     f"---------------------------------------------------"
                 )
+                print(f"test2: {server['host']}:{server['port']}")
+                whatsapp_alert.send_whatsapp(
+                    template_name="connectivity_notification_inav",
+                    attributes=[
+                        "success",
+                        f"{server['host']}:{server['port']}",
+                        {str(server_error)}
+                    ]
+                )
 
                 print(error_message)
                 # whatsapp_alert.send_whatsapp(error_message)
 
     except Exception as e:
         fail_message = f"[TELNET CHECK FAILED]\nError: {str(e)}"
+        print(f"test3: {server['host']}:{server['port']}")
+        whatsapp_alert.send_whatsapp(
+            template_name="connectivity_notification_inav",
+            attributes=[
+                "success",
+                f"{server['host']}:{server['port']}",
+                f"Error: {str(e)}"
+            ]
+        )
         print(fail_message)
         # whatsapp_alert.send_whatsapp(fail_message)
 
@@ -73,15 +98,15 @@ def telnet_connection(host, port):
     return tcp_test, remote_address, source_address
 
 
-# ================= FILE CHECK SCHEDULER =================
-
 def check_file_uploads():
     print(f"\n[FILE CHECK] Time : {time.strftime('%A, %d %B %Y %I:%M:%S %p')}")
 
-    today = datetime.now().strftime("%d%m%Y")  # 17042026
+    today = datetime.now().strftime("%d%m%Y")
     missingfiles = []
     successful = []
     final_message = ""
+
+    total_files_generated = 0  # -- counter
 
     try:
         for etf in config.ETF_LIST:
@@ -99,11 +124,19 @@ def check_file_uploads():
             comp_found = any(comp_pattern in f.lower() for f in files)
             const_found = any(const_pattern in f.lower() for f in files)
 
+            # Count generated files
+            if comp_found:
+                total_files_generated += 1
+
+            if const_found:
+                total_files_generated += 1
+
             if comp_found and const_found:
                 successful.append(etf)
             else:
                 if not comp_found:
                     missingfiles.append(f"{etf} - comp missing")
+
                 if not const_found:
                     missingfiles.append(f"{etf} - const missing")
 
@@ -116,14 +149,18 @@ def check_file_uploads():
         if successful:
             final_message += "\nAll files present for ETFs:\n" + "\n".join(successful) + "\n"
 
-        # If nothing was added
         if not final_message.strip():
             final_message = "No ETFs processed"
 
+        # Add file count in message
+        final_message += f"\nTotal Files Generated : {total_files_generated}"
+
         print(final_message)
 
-        # Send WhatsApp Alert
-        # whatsapp_alert.send_whatsapp(final_message)
+        whatsapp_alert.send_whatsapp(
+            template_name="files_verification_success_inav",
+            attributes=[str(total_files_generated), "", ""]
+        )
 
     except Exception as e:
         print(f"Error: {str(e)}")

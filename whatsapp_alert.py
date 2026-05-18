@@ -2,54 +2,59 @@ import requests
 import config
 
 
-def send_whatsapp(message_text):
-    message_text = "All iNav are updated in Database via application testing"
+def send_whatsapp(template_name, attributes):
+
     headers = {
         "Authorization": f"Bearer {config.API_KEY}",
         "Content-Type": "application/json"
     }
 
-    messages = [
-        {
-            "recipient_whatsapp": number,
-            "recipient_type": "individual",
-            "message_type": "template",
-            "type_template": [
+    results = []
+
+    for number in config.TO_NUMBERS:
+
+        print("Sending to:", number)
+
+        payload = {
+            "message": [
                 {
-                    "name": "database_price_check_success_inav",
-                    "attributes": [
-                        message_text,
-                        "https://netcorecloud.com/"
-                    ],
-                    "language": {
-                        "locale": "en",
-                        "policy": "deterministic"
-                    }
+                    "recipient_whatsapp": number,
+                    "recipient_type": "individual",
+                    "message_type": "template",
+                    "type_template": [
+                        {
+                            "name": template_name,
+                            "attributes": attributes,
+                            "language": {
+                                "locale": "en",
+                                "policy": "deterministic"
+                            }
+                        }
+                    ]
                 }
             ]
         }
-        for number in config.TO_NUMBERS
-    ]
 
-    payload = {
-        "message": messages
-    }
+        print(payload)
 
-    try:
+        try:
+            response = requests.post(
+                config.URL,
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
 
-        response = requests.post(
-            config.URL,
-            headers=headers,
-            json=payload,
-            timeout=30
-        )
+            print(f"{number} : {response.status_code}")
+            print(response.text)
 
-        print("Status Code:", response.status_code)
-        print("Response:", response.text)
+            results.append(response.json())
 
-        return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"{number} : Error: {e}")
 
-    except requests.exceptions.RequestException as e:
+    return results
 
-        print("Error:", str(e))
-        return None
+# if __name__ == '__main__':
+#     send_whatsapp(template_name="connectivity_notification_inav",
+#                   attributes=["success", "testing", "success"])

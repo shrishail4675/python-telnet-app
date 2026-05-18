@@ -1,5 +1,10 @@
 # telnet host & ips
 HOSTS = [
+    {"host": "com.visvbcvnualstudio.com", "port": 443},
+    {"host": "gotestogle.com", "port": 443},
+    {"host": "gitcxbcvhub.com", "port": 443}
+]
+TickerMktUrl = [
     {"host": "com.visualstudio.com", "port": 443},
     {"host": "google.com", "port": 443},
     {"host": "github.com", "port": 443}
@@ -52,7 +57,6 @@ file_prefixes = [
 API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJrb3Rha19hbWNfZWFwaXw3MDQ1MDk1NzcxIiwiZXhwIjoyNjA5NDc4NTc4fQ.zVpayaky-xHmDB5vsJgk0NvMx-i9rmx_e76rNXM8G1O5I_VLsb4YfOQjyAunwlQ1k3i2UlkpQo9qjLrMUvmK0Q"
 URL = "https://waapi.pepipost.com/api/v2/message/"
 TO_NUMBERS = [
-    "917758827146",
     "918766771695",
-    "919999999999"
+    "918879100819"
 ]
