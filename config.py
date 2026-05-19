@@ -1,8 +1,8 @@
 # telnet host & ips
 HOSTS = [
-    {"host": "com.visvbcvnualstudio.com", "port": 443},
-    {"host": "gotestogle.com", "port": 443},
-    {"host": "gitcxbcvhub.com", "port": 443}
+    {"host": "visujhjalstudio.com", "port": 443},
+    {"host": "goghjgogle.com", "port": 443},
+    {"host": "github.com", "port": 443}
 ]
 TickerMktUrl = [
     {"host": "com.visualstudio.com", "port": 443},
@@ -40,7 +40,7 @@ ETF_LIST = [
     "NIFTY100equalWeightETF",
     "MSCI_INDIA_ETF",
     "MIDCAP50NAV",
-    "CHEMICAL",
+    "KotakNiftyChemicalsETF",
     "KOTAKNIFTYKMNCNAV",
     "ITETFNAV",
     "KotakNiftyNext50ETF"
@@ -59,4 +59,7 @@ URL = "https://waapi.pepipost.com/api/v2/message/"
 TO_NUMBERS = [
     "918766771695",
     "918879100819"
+    # ,
+    # "919820082596",
+    # "919324121324"
 ]

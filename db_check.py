@@ -1,7 +1,6 @@
 # db_check.py
 import oracledb
 from datetime import datetime
-from twilio.rest import Client
 import traceback
 
 import whatsapp_alert

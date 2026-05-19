@@ -33,13 +33,13 @@ if __name__ == '__main__':
 
     jobs = [
         # runs every 10 minutes between 0–30 (as per your existing logic)Done
-        # (safe_job(main.schedule_print(config.HOSTS)), 'telnet_job', 11, '0-59/1'),
+        #  (safe_job(main.schedule_print(config.HOSTS)), 'telnet_job', 12, '0-59/1'),
 
         # runs every 10 minutes between 0–30 (as per your existing logic)Done
         # (safe_job(main.schedule_print(config.TickerMktUrl)), 'telnet_tickerUrl', 18, '0-59/1'),
 
         # runs at 10:31 Done
-        # (safe_job(main.check_file_uploads), 'file_check_job', 17, 37),
+        # (safe_job(main.check_file_uploads), 'file_check_job', 11, 58),
 
         # SFTP connection check Done
         # (safe_job(nse_sftp_morning.check_nse_sftp), 'sftp_job', 17, 13),
@@ -51,7 +51,7 @@ if __name__ == '__main__':
         # (safe_job(bse_sftp_market_hrs.check_bse_sftp_market_hrs), 'bse_master_trans_file', 16, '15,20'),
 
         #  NEW: DB check job (runs every 10 min from 9 to 18, Mon–Fri)
-        (safe_job(db_check.check_data_updated), 'db_check_job', 12, '38,20'),
+        # (safe_job(db_check.check_data_updated), 'db_check_job', 12, '38,20'),
     ]
 
     for func, job_id, hr, min_ in jobs:
